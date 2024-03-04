@@ -58,7 +58,7 @@ namespace NetwaysPoc.GraphServices
             {
                 requestConfiguration.QueryParameters.Filter = filter;
             });
-
+            await Console.Out.WriteLineAsync(users!.Value!.First().Id);
             return users!.Value!.First().Id;
         }
 
