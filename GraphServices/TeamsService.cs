@@ -2,9 +2,9 @@
 
 namespace NetwaysPoc.GraphServices;
 
-public class TeamsService
+public abstract class TeamsService
 {
-    public OnlineMeeting CreateTeamsMeeting(
+    public static OnlineMeeting CreateTeamsMeeting(
         string meeting,
         DateTimeOffset begin,
         DateTimeOffset end)
@@ -24,7 +24,7 @@ public class TeamsService
         return onlineMeeting;
     }
 
-    public OnlineMeeting AddMeetingParticipants(OnlineMeeting onlineMeeting, List<string> attendees)
+    public static OnlineMeeting AddMeetingParticipants(OnlineMeeting onlineMeeting, List<string> attendees)
     {
         var meetingAttendees = new List<MeetingParticipantInfo>();
         foreach (var attendee in attendees)
@@ -38,10 +38,7 @@ public class TeamsService
             }
         }
 
-        if (onlineMeeting.Participants == null)
-        {
-            onlineMeeting.Participants = new MeetingParticipants();
-        };
+        onlineMeeting.Participants ??= new MeetingParticipants();;
         onlineMeeting.Participants.Attendees = meetingAttendees;
 
         return onlineMeeting;

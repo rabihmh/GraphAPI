@@ -1,5 +1,4 @@
 ﻿using Azure.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Users.Item.SendMail;
@@ -16,7 +15,7 @@ namespace NetwaysPoc.GraphServices
             _settings = settings;
         }
 
-        public GraphServiceClient GetGraphClient()
+        private GraphServiceClient GetGraphClient()
         {
             if (_graphServiceClient != null)
                 return _graphServiceClient;
@@ -31,9 +30,9 @@ namespace NetwaysPoc.GraphServices
 
         private ChainedTokenCredential GetChainedTokenCredentials()
         {
-            var tenantId = _settings.TenantId;
-            var clientId = _settings.ClientId;
-            var clientSecret = _settings.ClientSecret;
+            var tenantId = _settings?.TenantId;
+            var clientId = _settings?.ClientId;
+            var clientSecret = _settings?.ClientSecret;
 
             var options = new TokenCredentialOptions
             {
@@ -50,7 +49,7 @@ namespace NetwaysPoc.GraphServices
 
         private async Task<string?> GetUserIdAsync()
         {
-            var meetingOrganizer = _settings.MeetingOrganizer;
+            var meetingOrganizer = _settings?.MeetingOrganizer;
             var filter = $"startswith(userPrincipalName,'{meetingOrganizer}')";
             var graphServiceClient = GetGraphClient();
 
@@ -58,7 +57,6 @@ namespace NetwaysPoc.GraphServices
             {
                 requestConfiguration.QueryParameters.Filter = filter;
             });
-            await Console.Out.WriteLineAsync(users!.Value!.First().Id);
             return users!.Value!.First().Id;
         }
 

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Graph.Models;
-using NetwaysPoc.GraphServices;
+﻿using NetwaysPoc.GraphServices;
 namespace NetwaysPoc
 {
     internal class Program
     {
-        private static GraphService _graphService;
+        private static GraphService? _graphService;
 
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Console.WriteLine("Netways PoC \n");
 
@@ -86,7 +83,7 @@ namespace NetwaysPoc
                 var emailService = new EmailService();
                 var message = emailService.CreateStandardEmail(recipientEmail, "Testing Microsoft Graph", "Hello, this is a test email.");
 
-                await _graphService.SendEmailAsync(message);
+                if (_graphService != null) await _graphService.SendEmailAsync(message);
 
                 Console.WriteLine("Mail sent.");
             }
@@ -100,21 +97,23 @@ namespace NetwaysPoc
         {
             try
             {
-                var teamsService = new TeamsService();
                 var eventService=new EventService();
 
-                var onlineMeeting = teamsService.CreateTeamsMeeting("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1));
+                var onlineMeeting = TeamsService.CreateTeamsMeeting("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1));
 
                 var participants = new List<string>(){ "rabihmahmoud772@gmail.com", "rfbarakat@netways.com" };
 
-                onlineMeeting = teamsService.AddMeetingParticipants(onlineMeeting, participants);
+                onlineMeeting = TeamsService.AddMeetingParticipants(onlineMeeting, participants);
 
-              var meeting=  await _graphService.CreateOnlineMeeting(onlineMeeting);
+                if (_graphService != null)
+                {
+                    var meeting=  await _graphService.CreateOnlineMeeting(onlineMeeting);
             
-               var newEvent= eventService.CreateEvent("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1), participants);
-                await _graphService.CreateEvent(newEvent);
-                Console.WriteLine("Online meeting created.");
-                Console.WriteLine("Url: " + meeting?.JoinWebUrl);
+                    var newEvent= eventService.CreateEvent("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1), participants);
+                    await _graphService.CreateEvent(newEvent);
+                    Console.WriteLine("Online meeting created.");
+                    Console.WriteLine("Url: " + meeting?.JoinWebUrl);
+                }
             }
             catch (Exception ex)
             {

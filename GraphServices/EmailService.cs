@@ -4,7 +4,7 @@ namespace NetwaysPoc.GraphServices;
 
 public class EmailService
 {
-    List<Microsoft.Graph.Models.Attachment> Attachments = new();
+    private readonly List<Attachment> _attachments = new();
 
     public Message CreateStandardEmail(string recipient, string header, string body)
     {
@@ -26,7 +26,7 @@ public class EmailService
                     }
                 }
             },
-            Attachments = Attachments
+            Attachments = _attachments
         };
 
         return message;
@@ -52,7 +52,7 @@ public class EmailService
                     }
                 }
             },
-            Attachments = Attachments
+            Attachments = _attachments
         };
 
         return message;
@@ -60,21 +60,21 @@ public class EmailService
 
     public void AddAttachment(byte[] rawData, string filePath)
     {
-        Attachments.Add(new FileAttachment
+        _attachments.Add(new FileAttachment
         {
             Name = Path.GetFileName(filePath),
-            ContentBytes = EncodeTobase64Bytes(rawData)
+            ContentBytes = EncodeToBase64Bytes(rawData)
         });
     }
 
     public void ClearAttachments()
     {
-        Attachments.Clear();
+        _attachments.Clear();
     }
 
-    static public byte[] EncodeTobase64Bytes(byte[] rawData)
+    private static byte[] EncodeToBase64Bytes(byte[] rawData)
     {
-        string base64String = System.Convert.ToBase64String(rawData);
+        var base64String = Convert.ToBase64String(rawData);
         var returnValue = Convert.FromBase64String(base64String);
         return returnValue;
     }
