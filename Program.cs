@@ -1,8 +1,13 @@
-﻿
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Graph.Models;
+using NetwaysPoc.GraphServices;
 namespace NetwaysPoc
 {
     internal class Program
     {
+        private static GraphService _graphService;
+
         static async Task Main(string[] args)
         {
             Console.WriteLine("Netways PoC \n");
@@ -29,15 +34,14 @@ namespace NetwaysPoc
         {
             Console.WriteLine("Please choose one of the following options:");
             Console.WriteLine("0. Exit");
-            Console.WriteLine("1. Display access token");
-            Console.WriteLine("2. Send mail");
-            Console.WriteLine("3. Create online meeting");
+            Console.WriteLine("1. Send mail");
+            Console.WriteLine("2. Create online meeting");
         }
 
         static int GetChoiceFromUser()
         {
             int choice;
-            while (!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > 3)
+            while (!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > 2)
             {
                 Console.WriteLine("Invalid choice! Please try again.");
             }
@@ -51,12 +55,9 @@ namespace NetwaysPoc
                 case 0:
                     break;
                 case 1:
-                    await DisplayAccessTokenAsync();
-                    break;
-                case 2:
                     await SendMailAsync();
                     break;
-                case 3:
+                case 2:
                     await CreateOnlineMeetingAsync();
                     break;
                 default:
@@ -67,41 +68,25 @@ namespace NetwaysPoc
 
         static void InitializeGraph(Settings settings)
         {
-            GraphHelper.InitializeGraphForUserAuth(settings,
-                (info, cancel) =>
-                {
-                    Console.WriteLine(info.Message);
-                    return Task.FromResult(0);
-                });
+            _graphService = new GraphService(settings);
         }
-        static async Task DisplayAccessTokenAsync()
-        {
-            try
-            {
-                var userToken = await GraphHelper.GetUserTokenAsync();
-                Console.WriteLine($"User token: {userToken}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting user access token: {ex.Message}");
-            }
 
-        }
         static async Task SendMailAsync()
         {
             try
             {
-                var user = await GraphHelper.GetUserAsync();
-                var userEmail = user?.Mail ?? user?.UserPrincipalName;
-                Console.WriteLine("Enter the email that u want to send to ");
-                var emailRead = Console.ReadLine();
-                if (string.IsNullOrEmpty(userEmail)|| String.IsNullOrEmpty(emailRead))
+                Console.WriteLine("Enter the email address you want to send to:");
+                var recipientEmail = Console.ReadLine();
+                if (String.IsNullOrEmpty(recipientEmail))
                 {
-                    Console.WriteLine("Couldn't get your email address, canceling...");
+                    Console.WriteLine("Couldn't get the recipient's email address, canceling...");
                     return;
                 }
-                Console.WriteLine("sent from :" + userEmail);
-                await GraphHelper.SendMailAsync("Testing Microsoft Graph", emailRead);
+
+                var emailService = new EmailService();
+                var message = emailService.CreateStandardEmail(recipientEmail, "Testing Microsoft Graph", "Hello, this is a test email.");
+
+                await _graphService.SendEmailAsync(message);
 
                 Console.WriteLine("Mail sent.");
             }
@@ -115,14 +100,27 @@ namespace NetwaysPoc
         {
             try
             {
-                var participants = new string[] { "rfbarakat@netways.com", "rabihmahmoud772@gmail.com"};
-                 await GraphHelper.CreateOnlineMeetingAsync(participants);
+                var teamsService = new TeamsService();
+                var eventService=new EventService();
+
+                var onlineMeeting = teamsService.CreateTeamsMeeting("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1));
+
+                var participants = new List<string>(){ "rabihmahmoud772@gmail.com", "rfbarakat@netways.com" };
+
+                onlineMeeting = teamsService.AddMeetingParticipants(onlineMeeting, participants);
+
+              var meeting=  await _graphService.CreateOnlineMeeting(onlineMeeting);
+            
+               var newEvent= eventService.CreateEvent("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1), participants);
+                await _graphService.CreateEvent(newEvent);
+                Console.WriteLine("Online meeting created.");
+                Console.WriteLine("Url: " + meeting?.JoinWebUrl);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating meeting: {ex.Message}");
             }
         }
-
     }
 }
+
