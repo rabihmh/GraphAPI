@@ -27,7 +27,25 @@ public class EventService
                 },
                 Type = AttendeeType.Required
             }).ToList(),
-            IsOnlineMeeting = true
+            IsOnlineMeeting = true,
+            Body = new ItemBody
+            {
+                ContentType = BodyType.Html,
+                Content = @"
+                            <h1>Meeting details</h1>
+                            <p>Test meeting</p>
+                            <ul>
+                                <li>Test 1</li>
+                                <li>Test 2</li>
+                            </ul>
+                            "
+            }
+            // Body = new ItemBody
+            // {
+            // ContentType = BodyType.Text,
+            // Content = "Test meeting"
+            // }
+            //}
         };
 
         return newEvent;
