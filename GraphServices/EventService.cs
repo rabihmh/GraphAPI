@@ -12,12 +12,12 @@ public class EventService
             Start = new DateTimeTimeZone
             {
                 DateTime = start.ToString("yyyy-MM-ddTHH:mm:ss"),
-                TimeZone = "UTC"
+                TimeZone =TimeZoneInfo.Local.Id.ToString()
             },
             End = new DateTimeTimeZone
             {
                 DateTime = end.ToString("yyyy-MM-ddTHH:mm:ss"),
-                TimeZone = "UTC"
+                TimeZone = TimeZoneInfo.Local.Id.ToString()
             },
             Attendees = participants.Select(participant => new Attendee
             {
@@ -40,12 +40,6 @@ public class EventService
                             </ul>
                             "
             }
-            // Body = new ItemBody
-            // {
-            // ContentType = BodyType.Text,
-            // Content = "Test meeting"
-            // }
-            //}
         };
 
         return newEvent;

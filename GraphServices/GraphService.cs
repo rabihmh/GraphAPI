@@ -2,6 +2,7 @@
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Users.Item.SendMail;
+using Microsoft.Identity.Client;
 
 namespace NetwaysPoc.GraphServices
 {
@@ -107,3 +108,22 @@ namespace NetwaysPoc.GraphServices
         }
     }
 }
+/*
+ private GraphServiceClient InitializeGraph()
+{
+    var tenantId = _settings?.TenantId;
+    var clientId = _settings?.ClientId;
+    var clientSecret = _settings?.ClientSecret;
+    string[] scopes = new[] { "https://graph.microsoft.com/.default" };
+
+    var confidentialClientApplication = ConfidentialClientApplicationBuilder
+        .Create(clientId)
+        .WithClientSecret(clientSecret)
+        .WithAuthority(new Uri($"https://login.microsoftonline.com/{tenantId}"))
+        .Build();
+
+    var authenticationProvider = new ClientCredentialProvider(confidentialClientApplication);
+
+    return new GraphServiceClient(authenticationProvider);
+}
+*/

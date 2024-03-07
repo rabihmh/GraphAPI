@@ -1,4 +1,5 @@
-﻿using NetwaysPoc.GraphServices;
+﻿using Microsoft.Graph.Models;
+using NetwaysPoc.GraphServices;
 namespace NetwaysPoc
 {
     internal class Program
@@ -97,19 +98,24 @@ namespace NetwaysPoc
         {
             try
             {
-                var eventService=new EventService();
-
-                var onlineMeeting = TeamsService.CreateTeamsMeeting("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1));
-
-                var participants = new List<string>(){ "rabihmahmoud772@gmail.com", "rfbarakat@netways.com" };
-
+                var subject = GetMeetingSubject();
+                var participants = GetParticipants();
+                if (participants.Count == 0)
+                {
+                    Console.WriteLine("Couldn't get the participants' email addresses, canceling...");
+                    return;
+                }
+                
+                var startDate=GetStartDate();
+                var endDate=GetEndDate(startDate);
+                Console.WriteLine("Creating online meeting...");
+                var onlineMeeting = CreateTeamsMeeting();
                 onlineMeeting = TeamsService.AddMeetingParticipants(onlineMeeting, participants);
 
                 if (_graphService != null)
                 {
-                    var meeting=  await _graphService.CreateOnlineMeeting(onlineMeeting);
-            
-                    var newEvent= eventService.CreateEvent("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1), participants);
+                    var meeting = await _graphService.CreateOnlineMeeting(onlineMeeting);
+                    var newEvent = CreateEvent(subject, startDate, endDate, participants);
                     await _graphService.CreateEvent(newEvent);
                     Console.WriteLine("Online meeting created.");
                     Console.WriteLine("Url: " + meeting?.JoinWebUrl);
@@ -120,6 +126,51 @@ namespace NetwaysPoc
                 Console.WriteLine($"Error creating meeting: {ex.Message}");
             }
         }
+
+        static List<string> GetParticipants()
+        {
+            Console.WriteLine("Please enter email addresses of participants separated by a comma:");
+            var participantsString = Console.ReadLine();
+            var participants = new List<string>();
+            foreach (var participant in participantsString.Split(','))
+            {
+                if (!participant.Contains('@'))
+                {
+                    Console.WriteLine($"Invalid email address: {participant}");
+                    continue;
+                }
+                participants.Add(participant);
+            }
+            return participants;
+        }
+        static string GetMeetingSubject()
+        {
+            Console.WriteLine("Please enter the subject of the meeting:");
+            return Console.ReadLine() ?? throw new InvalidOperationException("Meeting subject cannot be null");
+        }
+        static OnlineMeeting CreateTeamsMeeting()
+        {
+            return TeamsService.CreateTeamsMeeting("Test Meeting", DateTimeOffset.Now, DateTimeOffset.Now.AddHours(1));
+        }
+
+        static Event CreateEvent(string name, DateTimeOffset startDate, DateTimeOffset endDate, List<string> participants)
+        {
+            var eventService = new EventService();
+            return eventService.CreateEvent(name, startDate, endDate, participants);
+        }
+        static DateTimeOffset GetStartDate()
+        {
+            Console.WriteLine("Please enter the start date of the meeting, after how many minutes:");
+            var minutes = int.Parse(Console.ReadLine() ?? throw new InvalidOperationException("Minutes cannot be null"));
+            return DateTimeOffset.Now.AddMinutes(minutes);
+        }
+        static DateTimeOffset GetEndDate(DateTimeOffset startDate)
+        {
+            Console.WriteLine("Please enter the end date of the meeting, after how many minutes:");
+            var minutes = int.Parse(Console.ReadLine() ?? throw new InvalidOperationException("Minutes cannot be null"));
+            return startDate.AddMinutes(minutes);
+        }
+
     }
 }
 
